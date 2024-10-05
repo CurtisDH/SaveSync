@@ -12,4 +12,8 @@
         <PlatformTarget>x86</PlatformTarget>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Dropbox.Api" Version="7.0.0" />
+    </ItemGroup>
+
 </Project>

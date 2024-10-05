@@ -11,7 +11,7 @@ public abstract class BaseIntegration
 
     protected abstract byte[] Download();
     protected abstract bool Upload(byte[] zippedContents);
-    public abstract void DisplayUiOptions();
+    public abstract Task DisplayUiOptions();
     public abstract void Run();
 
     public void DownloadAndPromptReplace()
