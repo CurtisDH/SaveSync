@@ -7,7 +7,7 @@ namespace Soulash2_SaveSync;
 public class IntegrationManager
 {
     private readonly string _configFilePath = Path.Combine(Directory.GetCurrentDirectory(), "integration_config.json");
-
+    private SettingsConfig IntegrationSettings = new(); 
     public BaseIntegration? SelectedIntegration { get; private set; }
     private readonly List<BaseIntegration?> _integrations;
 
@@ -15,11 +15,18 @@ public class IntegrationManager
     {
         _integrations = LoadIntegrations();
         LoadConfiguration();
+        SaveConfiguration();
     }
 
-    public void ShowMenu()
+    private void SaveConfiguration()
     {
-        SelectIntegration();
+        var s = JsonSerializer.Serialize(IntegrationSettings);
+        File.WriteAllText(_configFilePath,s);
+    }
+
+    ~IntegrationManager()
+    {
+        SaveConfiguration();
     }
 
     private void SelectIntegration()
@@ -35,6 +42,7 @@ public class IntegrationManager
         {
             SelectedIntegration = _integrations[selectedOption - 1];
             Console.WriteLine($"Integration set to: {SelectedIntegration?.GetType().Name}");
+            IntegrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
             SelectedIntegration?.DisplayUiOptions();
         }
         else
@@ -74,10 +82,10 @@ public class IntegrationManager
                 SelectedIntegration = _integrations.FirstOrDefault(i => i?.GetType().Name == config.SelectedIntegrationName);
                 if (SelectedIntegration != null)
                 {
-                    Console.WriteLine($"Loaded integration: {SelectedIntegration.GetType().Name}");
+                    Console.WriteLine($"Loaded existing selected integration: {SelectedIntegration.GetType().Name}");
+                    IntegrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
+                    return;
                 }
-                
-                return;
             }
             catch (Exception ex)
             {

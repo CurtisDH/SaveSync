@@ -21,7 +21,6 @@ public class SaveSync(BaseIntegration? imSelectedIntegration)
             RedirectStandardError = true,
             UseShellExecute = false
         };
-        Task.Run(imSelectedIntegration.DownloadAndPromptReplace);
         imSelectedIntegration.DownloadAndPromptReplace();
         var process = Process.Start(startInfo);
         process?.WaitForExit();

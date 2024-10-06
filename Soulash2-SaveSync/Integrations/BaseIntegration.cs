@@ -19,8 +19,7 @@ public abstract class BaseIntegration
         string downloadFolderPath = Path.Combine(Directory.GetCurrentDirectory(), DownloadFolder);
 
         if (Directory.Exists(downloadFolderPath))
-            Directory.Delete(downloadFolderPath, true);
-
+            Directory.Delete(downloadFolderPath,true);
         Directory.CreateDirectory(downloadFolderPath);
 
         using (var memoryStream = new MemoryStream(downloadedFiles))

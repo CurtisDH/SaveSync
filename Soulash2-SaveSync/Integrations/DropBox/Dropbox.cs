@@ -8,14 +8,18 @@ namespace Soulash2_SaveSync.Integrations.DropBox;
 public class Dropbox : BaseIntegration
 {
     private const string ApiKey = "smmi3ym2bdgwkk2";
-    private const string LoopbackHost = "http://localhost:5001/";
+    private const string LoopbackHost = "http://localhost:5000/";
+    private const string fullFilePath = $"/Soulash2-SaveSync/SaveSync.zip";
     private readonly Uri _redirectUri = new Uri(LoopbackHost + "authorize");
     private readonly Uri _jsRedirectUri = new Uri(LoopbackHost + "token");
     private readonly DropboxSettingsConfig _settingsConfig = new();
 
     protected override byte[] Download()
     {
-        throw new NotImplementedException();
+        var client = new DropboxClient(_settingsConfig.RefreshToken, ApiKey);
+        var files = client.Files.DownloadAsync(fullFilePath);
+        var filebytes = files.Result.GetContentAsByteArrayAsync().Result;
+        return filebytes;
     }
 
     protected override bool Upload(byte[] zippedContents)
