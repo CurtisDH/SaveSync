@@ -12,7 +12,6 @@ public abstract class BaseIntegration
     protected abstract byte[] Download();
     protected abstract bool Upload(byte[] zippedContents);
     public abstract Task DisplayUiOptions();
-    public abstract void Run();
 
     public void DownloadAndPromptReplace()
     {
@@ -95,13 +94,7 @@ public abstract class BaseIntegration
             using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
             {
                 var saveDirectory = new DirectoryInfo(SaveLocation);
-                foreach (var file in saveDirectory.GetFiles())
-                {
-                    var zipEntry = archive.CreateEntry(file.Name, CompressionLevel.Fastest);
-                    using var zipStream = zipEntry.Open();
-                    using var fileStream = file.OpenRead();
-                    fileStream.CopyTo(zipStream);
-                }
+                ZipDirectoryRecursively(saveDirectory, archive, string.Empty);
             }
 
             return memoryStream.ToArray();
@@ -109,7 +102,25 @@ public abstract class BaseIntegration
         catch (Exception ex)
         {
             Console.WriteLine($"Error while zipping directory: {ex.Message}");
-            return new byte[]{};
+            return new byte[] { };
+        }
+    }
+
+    private void ZipDirectoryRecursively(DirectoryInfo directory, ZipArchive archive, string basePath)
+    {
+        foreach (var file in directory.GetFiles())
+        {
+            var relativePath = Path.Combine(basePath, file.Name);
+            var zipEntry = archive.CreateEntry(relativePath, CompressionLevel.Fastest);
+            using var zipStream = zipEntry.Open();
+            using var fileStream = file.OpenRead();
+            fileStream.CopyTo(zipStream);
+        }
+
+        foreach (var subDirectory in directory.GetDirectories())
+        {
+            var subDirectoryPath = Path.Combine(basePath, subDirectory.Name);
+            ZipDirectoryRecursively(subDirectory, archive, subDirectoryPath);
         }
     }
 }

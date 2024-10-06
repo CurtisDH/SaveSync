@@ -24,7 +24,6 @@ public class IntegrationManager
 
     private void SelectIntegration()
     {
-        Console.Clear();
         Console.WriteLine("== Select Save Integration ==");
         for (var i = 0; i < _integrations.Count; i++)
         {
@@ -42,9 +41,6 @@ public class IntegrationManager
         {
             Console.WriteLine("Invalid selection. Please try again.");
         }
-
-        Console.WriteLine("Press any key to continue...");
-        Console.ReadKey();
     }
     
     private List<BaseIntegration?> LoadIntegrations()

@@ -1,16 +1,17 @@
-﻿using System.Net;
-using System.Text;
-using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Net;
 using Dropbox.Api;
 using Dropbox.Api.Files;
-using Soulash2_SaveSync.Integrations.DropBox.Utils;
 
 namespace Soulash2_SaveSync.Integrations.DropBox;
 
 public class Dropbox : BaseIntegration
 {
-    private string _accessToken;
-    private DropboxClient _dropboxClient;
+    private const string ApiKey = "smmi3ym2bdgwkk2";
+    private const string LoopbackHost = "http://localhost:5001/";
+    private readonly Uri _redirectUri = new Uri(LoopbackHost + "authorize");
+    private readonly Uri _jsRedirectUri = new Uri(LoopbackHost + "token");
+    private readonly DropboxSettingsConfig _settingsConfig = new();
 
     protected override byte[] Download()
     {
@@ -19,108 +20,23 @@ public class Dropbox : BaseIntegration
 
     protected override bool Upload(byte[] zippedContents)
     {
-        throw new NotImplementedException();
-    }
-
-    public override async Task DisplayUiOptions()
-    {
-        while (true)
+        if (zippedContents == null || zippedContents.Length == 0)
         {
-            Console.WriteLine("-= Dropbox Configuration Setup =-");
-            _dropboxClient = await AuthenticateWithDropbox();
-
-            await UploadTestFile();
+            throw new ArgumentException("File contents cannot be null or empty", nameof(zippedContents));
         }
+
+        using var memStream = new MemoryStream(zippedContents);
+        var task = UploadFileToDropbox("SaveSync.zip", memStream);
+        task.Wait(); 
+
+        return !string.IsNullOrEmpty(task.Result);
     }
-
-    private async Task<DropboxClient> AuthenticateWithDropbox()
-    {
-        var clientId = "smmi3ym2bdgwkk2"; 
-        var redirectUri = "http://localhost:5000/callback";
-
-        var (codeVerifier, codeChallenge) = PkceHelper.GeneratePkceCodes();
-
-        var authorizationUrl = DropBoxAuthHandling.GetAuthorizationUrl(clientId, redirectUri, codeChallenge);
-        Console.WriteLine($"Please go to this URL to authorize the app: {authorizationUrl}");
-
-        var authorizationCode = await StartLocalServerAndGetAuthorizationCode(redirectUri);
-
-        _accessToken = await GetAccessToken(clientId, redirectUri, authorizationCode, codeVerifier);
-        
-        var client = new DropboxClient(_accessToken, new DropboxClientConfig("Soulash2-SaveSync", 3));
-        var accountInfo = await client.Users.GetCurrentAccountAsync();
-        Console.WriteLine($"Connected to Dropbox account: {accountInfo.Name.DisplayName}");
-        return client;
-    }
-    private async Task<string> StartLocalServerAndGetAuthorizationCode(string redirectUri)
-    {
-        var uriParts = redirectUri.Split(new[] { "://" }, StringSplitOptions.RemoveEmptyEntries);
-        var host = uriParts[1].Split('/')[0]; 
-        var path = "/" + string.Join("/", uriParts[1].Split('/').Skip(1)); 
-
-        using (var listener = new HttpListener())
-        {
-            listener.Prefixes.Add(redirectUri + "/"); 
-            listener.Start();
-            Console.WriteLine("Waiting for authorization code...");
-
-            var context = await listener.GetContextAsync(); 
-            var response = context.Response;
-            string code = context.Request.QueryString["code"];
-
-            string responseString = "Authorization successful! You can close this window.";
-            var buffer = Encoding.UTF8.GetBytes(responseString);
-            response.ContentLength64 = buffer.Length;
-            var output = response.OutputStream;
-            await output.WriteAsync(buffer, 0, buffer.Length);
-            output.Close();
-
-            listener.Stop();
-            return code; 
-        }
-    }
-
-    private async Task<string> GetAccessToken(string clientId, string redirectUri, string authorizationCode, string codeVerifier)
-    {
-        using (var httpClient = new HttpClient())
-        {
-            var tokenUrl = "https://api.dropboxapi.com/oauth2/token";
-            var parameters = new Dictionary<string, string>
-            {
-                { "code", authorizationCode },
-                { "client_id", clientId },
-                { "redirect_uri", redirectUri },
-                { "code_verifier", codeVerifier },
-                { "grant_type", "authorization_code" }
-            };
-
-            var response = await httpClient.PostAsync(tokenUrl, new FormUrlEncodedContent(parameters));
-            response.EnsureSuccessStatusCode();
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var tokenResponse = JsonSerializer.Deserialize<DropBoxAuthHandling.DropboxTokenResponse>(responseBody);
-            return tokenResponse.AccessToken; 
-        }
-    }
-
-    private async Task UploadTestFile()
-    {
-        const string fileName = "Test.txt";
-        File.WriteAllText(fileName, "Lets see if this works");
-        var content = File.ReadAllText(fileName);
-
-        using (var mem = new MemoryStream(Encoding.UTF8.GetBytes(content)))
-        {
-            string revision = await UploadFileToDropbox(fileName, mem);
-            Console.WriteLine(revision);
-        }
-    }
-
+    
     private async Task<string> UploadFileToDropbox(string fileName, MemoryStream mem)
     {
         try
         {
-            var updated = await _dropboxClient.Files.UploadAsync(
+            var updated = await new DropboxClient(_settingsConfig.RefreshToken,ApiKey).Files.UploadAsync(
                 $"/Soulash2-SaveSync/{fileName}",
                 WriteMode.Overwrite.Instance,
                 body: mem);
@@ -130,9 +46,116 @@ public class Dropbox : BaseIntegration
         catch (ApiException<UploadError> e)
         {
             HandleUploadError(e, fileName);
-            return string.Empty; 
+            return string.Empty;
         }
     }
+
+    public override async Task DisplayUiOptions()
+    {
+        while (true)
+        {
+            Console.WriteLine("-= Dropbox Configuration Setup =-");
+            if (string.IsNullOrEmpty(_settingsConfig.RefreshToken))
+            {
+                await AcquireAccessToken(null, IncludeGrantedScopes.None);
+            }
+            break;
+        }
+    }
+
+    private async Task AcquireAccessToken(string[] scopeList, IncludeGrantedScopes includeGrantedScopes)
+    {
+        var accessToken = _settingsConfig.AccessToken;
+        var refreshToken = _settingsConfig.RefreshToken;
+
+        if (!string.IsNullOrEmpty(accessToken)) return;
+
+        try
+        {
+            Console.WriteLine("Waiting for credentials.");
+            var state = Guid.NewGuid().ToString("N");
+            var oAuthFlow = new PKCEOAuthFlow();
+            var authorizeUri = oAuthFlow.GetAuthorizeUri(OAuthResponseType.Code, ApiKey, _redirectUri.ToString(),
+                state: state, tokenAccessType: TokenAccessType.Offline, scopeList: scopeList,
+                includeGrantedScopes: includeGrantedScopes);
+            var http = new HttpListener();
+            http.Prefixes.Add(LoopbackHost);
+
+            http.Start();
+            Console.WriteLine($"Please go to {authorizeUri.ToString()} to verify");
+
+            await HandleOAuth2Redirect(http);
+
+            var redirectUri = await HandleJsRedirect(http);
+
+            Console.WriteLine("Exchanging code for token");
+            var tokenResult =
+                await oAuthFlow.ProcessCodeFlowAsync(redirectUri, ApiKey, _redirectUri.ToString(), state);
+            Console.WriteLine("Finished Exchanging Code for Token");
+            accessToken = tokenResult.AccessToken;
+            refreshToken = tokenResult.RefreshToken;
+            var uid = tokenResult.Uid;
+            Console.WriteLine("Uid: {0}", uid);
+            Console.WriteLine("AccessToken: {0}", accessToken);
+            if (tokenResult.RefreshToken != null)
+            {
+                Console.WriteLine("RefreshToken: {0}", refreshToken);
+                _settingsConfig.RefreshToken = refreshToken;
+            }
+
+            if (tokenResult.ExpiresAt != null)
+            {
+                Console.WriteLine("ExpiresAt: {0}", tokenResult.ExpiresAt);
+            }
+
+            if (tokenResult.ScopeList != null)
+            {
+                Console.WriteLine("Scopes: {0}", String.Join(" ", tokenResult.ScopeList));
+            }
+
+            _settingsConfig.AccessToken = accessToken;
+            _settingsConfig.Uid = uid;
+            _settingsConfig.Save();
+            http.Stop();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error: {0}", e.Message);
+        }
+    }
+
+    private async Task HandleOAuth2Redirect(HttpListener http)
+    {
+        var context = await http.GetContextAsync();
+
+        while (context.Request.Url.AbsolutePath != _redirectUri.AbsolutePath)
+        {
+            context = await http.GetContextAsync();
+        }
+
+        context.Response.ContentType = "text/html";
+        
+        using (var file = File.OpenRead("Integrations/DropBox/index.html"))
+        {
+            file.CopyTo(context.Response.OutputStream);
+        }
+
+        context.Response.OutputStream.Close();
+    }
+
+    private async Task<Uri> HandleJsRedirect(HttpListener http)
+    {
+        var context = await http.GetContextAsync();
+        while (context.Request.Url.AbsolutePath != _jsRedirectUri.AbsolutePath)
+        {
+            context = await http.GetContextAsync();
+        }
+
+        var redirectUri = new Uri(context.Request.QueryString["url_with_fragment"]);
+
+        return redirectUri;
+    }
+
 
     private void HandleUploadError(ApiException<UploadError> e, string fileName)
     {
@@ -146,12 +169,4 @@ public class Dropbox : BaseIntegration
         }
     }
 
-    public override void Run()
-    {
-        throw new NotImplementedException();
-    }
-    
-
-
 }
-
