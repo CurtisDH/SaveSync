@@ -2,12 +2,13 @@
 using System.Text.Json;
 using Soulash2_SaveSync.Configs;
 using Soulash2_SaveSync.Integrations;
+
 namespace Soulash2_SaveSync;
 
 public class IntegrationManager
 {
     private readonly string _configFilePath = Path.Combine(Directory.GetCurrentDirectory(), "integration_config.json");
-    private SettingsConfig IntegrationSettings = new(); 
+    private readonly SettingsConfig _integrationSettings = new();
     public BaseIntegration? SelectedIntegration { get; private set; }
     private readonly List<BaseIntegration?> _integrations;
 
@@ -20,13 +21,8 @@ public class IntegrationManager
 
     private void SaveConfiguration()
     {
-        var s = JsonSerializer.Serialize(IntegrationSettings);
-        File.WriteAllText(_configFilePath,s);
-    }
-
-    ~IntegrationManager()
-    {
-        SaveConfiguration();
+        var s = JsonSerializer.Serialize(_integrationSettings);
+        File.WriteAllText(_configFilePath, s);
     }
 
     private void SelectIntegration()
@@ -42,15 +38,17 @@ public class IntegrationManager
         {
             SelectedIntegration = _integrations[selectedOption - 1];
             Console.WriteLine($"Integration set to: {SelectedIntegration?.GetType().Name}");
-            IntegrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
-            SelectedIntegration?.DisplayUiOptions();
+            _integrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
+
+            var task = SelectedIntegration.DisplayUiOptions();
+            task.Wait();
         }
         else
         {
             Console.WriteLine("Invalid selection. Please try again.");
         }
     }
-    
+
     private List<BaseIntegration?> LoadIntegrations()
     {
         var baseType = typeof(BaseIntegration);
@@ -78,12 +76,13 @@ public class IntegrationManager
             {
                 var config = JsonSerializer.Deserialize<SettingsConfig>(File.ReadAllText(_configFilePath));
                 if (config == null) return;
-                
-                SelectedIntegration = _integrations.FirstOrDefault(i => i?.GetType().Name == config.SelectedIntegrationName);
+
+                SelectedIntegration =
+                    _integrations.FirstOrDefault(i => i?.GetType().Name == config.SelectedIntegrationName);
                 if (SelectedIntegration != null)
                 {
                     Console.WriteLine($"Loaded existing selected integration: {SelectedIntegration.GetType().Name}");
-                    IntegrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
+                    _integrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
                     return;
                 }
             }
@@ -91,9 +90,8 @@ public class IntegrationManager
             {
                 Console.WriteLine($"Error loading configuration: {ex.Message}");
             }
-
         }
+
         SelectIntegration();
     }
 }
-
