@@ -16,4 +16,10 @@
       <PackageReference Include="Dropbox.Api" Version="7.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Integrations\DropBox\index.html">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

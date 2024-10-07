@@ -15,11 +15,12 @@ public abstract class BaseIntegration
 
     public void DownloadAndPromptReplace()
     {
+        Console.WriteLine("Downloading...");
         var downloadedFiles = Download();
         string downloadFolderPath = Path.Combine(Directory.GetCurrentDirectory(), DownloadFolder);
 
         if (Directory.Exists(downloadFolderPath))
-            Directory.Delete(downloadFolderPath,true);
+            Directory.Delete(downloadFolderPath, true);
         Directory.CreateDirectory(downloadFolderPath);
 
         using (var memoryStream = new MemoryStream(downloadedFiles))
@@ -29,6 +30,7 @@ public abstract class BaseIntegration
                 archive.ExtractToDirectory(downloadFolderPath);
             }
         }
+
         var extractedFiles = Directory.GetFiles(downloadFolderPath, "*", SearchOption.AllDirectories);
         foreach (var downloadedFilePath in extractedFiles)
         {
@@ -44,21 +46,25 @@ public abstract class BaseIntegration
                 Console.WriteLine($"Downloaded file date: {downloadedFileInfo.LastWriteTime}");
                 Console.WriteLine($"Existing file date: {saveFileInfo.LastWriteTime}");
 
-                bool shouldReplace;
+                bool shouldReplace = IntegrationManager.IntegrationSettings.ReplaceSaveWithoutAsking;
+                if (shouldReplace == false)
+                {
+                    if ((downloadedFileInfo.LastWriteTime > saveFileInfo.LastWriteTime))
+                    {
+                        Console.WriteLine(
+                            "The downloaded file is newer. Do you want to replace the existing file? (y/n)");
+                        var input = Console.ReadLine();
+                        shouldReplace = input?.ToLower() == "y";
+                    }
+                    else
+                    {
+                        Console.WriteLine(
+                            "The existing file is newer or has the same date. Do you want to replace it anyway? (y/n)");
+                        var input = Console.ReadLine();
+                        shouldReplace = input?.ToLower() == "y";
+                    }
+                }
 
-                if (downloadedFileInfo.LastWriteTime > saveFileInfo.LastWriteTime)
-                {
-                    Console.WriteLine("The downloaded file is newer. Do you want to replace the existing file? (y/n)");
-                    var input = Console.ReadLine();
-                    shouldReplace = input?.ToLower() == "y";
-                }
-                else
-                {
-                    Console.WriteLine(
-                        "The existing file is newer or has the same date. Do you want to replace it anyway? (y/n)");
-                    var input = Console.ReadLine();
-                    shouldReplace = input?.ToLower() == "y";
-                }
                 if (shouldReplace)
                 {
                     File.Copy(downloadedFilePath, saveFilePath, overwrite: true);
@@ -77,6 +83,7 @@ public abstract class BaseIntegration
             }
         }
     }
+
     public bool ZipAndUpload()
     {
         var zippedData = ZipDirectory();
@@ -122,4 +129,6 @@ public abstract class BaseIntegration
             ZipDirectoryRecursively(subDirectory, archive, subDirectoryPath);
         }
     }
+
+    public abstract bool TestConnection();
 }

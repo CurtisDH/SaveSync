@@ -8,7 +8,7 @@ namespace Soulash2_SaveSync;
 public class IntegrationManager
 {
     private readonly string _configFilePath = Path.Combine(Directory.GetCurrentDirectory(), "integration_config.json");
-    private readonly SettingsConfig _integrationSettings = new();
+    public static SettingsConfig IntegrationSettings = new();
     public BaseIntegration? SelectedIntegration { get; private set; }
     private readonly List<BaseIntegration?> _integrations;
 
@@ -21,7 +21,7 @@ public class IntegrationManager
 
     private void SaveConfiguration()
     {
-        var s = JsonSerializer.Serialize(_integrationSettings);
+        var s = JsonSerializer.Serialize(IntegrationSettings);
         File.WriteAllText(_configFilePath, s);
     }
 
@@ -38,7 +38,7 @@ public class IntegrationManager
         {
             SelectedIntegration = _integrations[selectedOption - 1];
             Console.WriteLine($"Integration set to: {SelectedIntegration?.GetType().Name}");
-            _integrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
+            IntegrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
 
             var task = SelectedIntegration.DisplayUiOptions();
             task.Wait();
@@ -74,15 +74,21 @@ public class IntegrationManager
         {
             try
             {
-                var config = JsonSerializer.Deserialize<SettingsConfig>(File.ReadAllText(_configFilePath));
-                if (config == null) return;
+                IntegrationSettings = JsonSerializer.Deserialize<SettingsConfig>(File.ReadAllText(_configFilePath));
+                if (IntegrationSettings == null) return;
 
                 SelectedIntegration =
-                    _integrations.FirstOrDefault(i => i?.GetType().Name == config.SelectedIntegrationName);
+                    _integrations.FirstOrDefault(i => i?.GetType().Name == IntegrationSettings.SelectedIntegrationName);
                 if (SelectedIntegration != null)
                 {
                     Console.WriteLine($"Loaded existing selected integration: {SelectedIntegration.GetType().Name}");
-                    _integrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
+                    IntegrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
+                    if (SelectedIntegration.TestConnection())
+                    {
+                        return;
+                    }
+
+                    SelectIntegration();
                     return;
                 }
             }

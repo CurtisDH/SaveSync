@@ -63,7 +63,30 @@ public class Dropbox : BaseIntegration
             {
                 await AcquireAccessToken(null, IncludeGrantedScopes.None);
             }
+            else
+            {
+                if (TestConnection())
+                {
+                    break;
+                }
+                _settingsConfig.Reset();
+            }
             break;
+        }
+    }
+
+    public override bool TestConnection()
+    {
+        try
+        {
+            var client = new DropboxClient(_settingsConfig.RefreshToken, ApiKey);
+            var t = client.Users.GetCurrentAccountAsync();
+            var result = t.Result;
+            return !string.IsNullOrEmpty(result.Name.DisplayName);
+        }
+        catch
+        {
+            return false;
         }
     }
 
