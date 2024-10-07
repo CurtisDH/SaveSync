@@ -12,13 +12,14 @@ public class SaveSync(BaseIntegration? imSelectedIntegration)
         var launchCfg = new LaunchConfig();
         if (File.Exists(CfgName))
         {
-            JsonSerializer.Deserialize<LaunchConfig>(File.ReadAllText(CfgName));
+            launchCfg = JsonSerializer.Deserialize<LaunchConfig>(File.ReadAllText(CfgName));
         }
         else
         {
             var s = JsonSerializer.Serialize(launchCfg);
             File.WriteAllText(CfgName,s);
         }
+        Console.WriteLine($"Launch config exe path:{launchCfg.ExePath}");
         var startInfo = new ProcessStartInfo
         {
             FileName = launchCfg.ExePath,
