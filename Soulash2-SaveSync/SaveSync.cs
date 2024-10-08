@@ -6,19 +6,9 @@ namespace Soulash2_SaveSync;
 
 public class SaveSync(BaseIntegration? imSelectedIntegration)
 {
-    private const string CfgName = "launch_cfg.json";
     public void Start()
     {
-        var launchCfg = new LaunchConfig();
-        if (File.Exists(CfgName))
-        {
-            launchCfg = JsonSerializer.Deserialize<LaunchConfig>(File.ReadAllText(CfgName));
-        }
-        else
-        {
-            var s = JsonSerializer.Serialize(launchCfg);
-            File.WriteAllText(CfgName,s);
-        }
+        var launchCfg = IntegrationManager.SettingsConfig.LaunchConfig;
         Console.WriteLine($"Launch config exe path:{launchCfg.ExePath}");
         var startInfo = new ProcessStartInfo
         {

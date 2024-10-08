@@ -4,11 +4,8 @@ namespace Soulash2_SaveSync.Integrations;
 
 public abstract class BaseIntegration
 {
-    protected const string DownloadFolder = "SaveSyncDownloads";
-
-    protected string SaveLocation => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        @"WizardsOfTheCode\Soulash2\saves");
-
+    private const string DownloadFolder = "SaveSyncDownloads";
+    
     protected abstract byte[] Download();
     protected abstract bool Upload(byte[] zippedContents);
     public abstract Task DisplayUiOptions();
@@ -35,7 +32,7 @@ public abstract class BaseIntegration
         foreach (var downloadedFilePath in extractedFiles)
         {
             var relativePath = Path.GetRelativePath(downloadFolderPath, downloadedFilePath);
-            var saveFilePath = Path.Combine(SaveLocation, relativePath);
+            var saveFilePath = Path.Combine(IntegrationManager.SettingsConfig.SaveLocation, relativePath);
 
             if (File.Exists(saveFilePath))
             {
@@ -46,7 +43,7 @@ public abstract class BaseIntegration
                 Console.WriteLine($"Downloaded file date: {downloadedFileInfo.LastWriteTime}");
                 Console.WriteLine($"Existing file date: {saveFileInfo.LastWriteTime}");
 
-                bool shouldReplace = IntegrationManager.IntegrationSettings.ReplaceSaveWithoutAsking;
+                bool shouldReplace = IntegrationManager.SettingsConfig.ReplaceSaveWithoutAsking;
                 if (shouldReplace == false)
                 {
                     if ((downloadedFileInfo.LastWriteTime > saveFileInfo.LastWriteTime))
@@ -99,7 +96,7 @@ public abstract class BaseIntegration
             using var memoryStream = new MemoryStream();
             using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
             {
-                var saveDirectory = new DirectoryInfo(SaveLocation);
+                var saveDirectory = new DirectoryInfo(IntegrationManager.SettingsConfig.SaveLocation);
                 ZipDirectoryRecursively(saveDirectory, archive, string.Empty);
             }
 

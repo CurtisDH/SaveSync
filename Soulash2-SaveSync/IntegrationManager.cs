@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Text.Json;
 using Soulash2_SaveSync.Configs;
 using Soulash2_SaveSync.Integrations;
 
@@ -7,26 +6,19 @@ namespace Soulash2_SaveSync;
 
 public class IntegrationManager
 {
-    private readonly string _configFilePath = Path.Combine(Directory.GetCurrentDirectory(), "integration_config.json");
-    public static SettingsConfig IntegrationSettings = new();
-    public BaseIntegration? SelectedIntegration { get; private set; }
+    public static readonly SettingsConfig SettingsConfig = new();
     private readonly List<BaseIntegration?> _integrations;
 
     public IntegrationManager()
     {
         _integrations = LoadIntegrations();
         LoadConfiguration();
-        SaveConfiguration();
+        SettingsConfig.Save();
     }
 
-    private void SaveConfiguration()
+    private BaseIntegration? SelectIntegration()
     {
-        var s = JsonSerializer.Serialize(IntegrationSettings);
-        File.WriteAllText(_configFilePath, s);
-    }
-
-    private void SelectIntegration()
-    {
+        BaseIntegration SelectedIntegration = null;
         Console.WriteLine("== Select Save Integration ==");
         for (var i = 0; i < _integrations.Count; i++)
         {
@@ -38,7 +30,7 @@ public class IntegrationManager
         {
             SelectedIntegration = _integrations[selectedOption - 1];
             Console.WriteLine($"Integration set to: {SelectedIntegration?.GetType().Name}");
-            IntegrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
+            SettingsConfig.SelectedIntegrationName = SelectedIntegration.GetType().Name;
 
             var task = SelectedIntegration.DisplayUiOptions();
             task.Wait();
@@ -47,6 +39,8 @@ public class IntegrationManager
         {
             Console.WriteLine("Invalid selection. Please try again.");
         }
+
+        return SelectedIntegration;
     }
 
     private List<BaseIntegration?> LoadIntegrations()
@@ -70,34 +64,10 @@ public class IntegrationManager
 
     private void LoadConfiguration()
     {
-        if (File.Exists(_configFilePath))
+        var config = new SettingsConfig();
+        if (config.TryLoadExisting(_integrations) == false)
         {
-            try
-            {
-                IntegrationSettings = JsonSerializer.Deserialize<SettingsConfig>(File.ReadAllText(_configFilePath));
-                if (IntegrationSettings == null) return;
-
-                SelectedIntegration =
-                    _integrations.FirstOrDefault(i => i?.GetType().Name == IntegrationSettings.SelectedIntegrationName);
-                if (SelectedIntegration != null)
-                {
-                    Console.WriteLine($"Loaded existing selected integration: {SelectedIntegration.GetType().Name}");
-                    IntegrationSettings.SelectedIntegrationName = SelectedIntegration.GetType().Name;
-                    if (SelectedIntegration.TestConnection())
-                    {
-                        return;
-                    }
-
-                    SelectIntegration();
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading configuration: {ex.Message}");
-            }
+            SettingsConfig.SelectedIntegration = SelectIntegration();
         }
-
-        SelectIntegration();
     }
 }

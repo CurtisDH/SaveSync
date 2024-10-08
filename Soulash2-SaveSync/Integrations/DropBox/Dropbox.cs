@@ -12,7 +12,7 @@ public class Dropbox : BaseIntegration
     private const string fullFilePath = $"/Soulash2-SaveSync/SaveSync.zip";
     private readonly Uri _redirectUri = new Uri(LoopbackHost + "authorize");
     private readonly Uri _jsRedirectUri = new Uri(LoopbackHost + "token");
-    private readonly DropboxSettingsConfig _settingsConfig = new();
+    private readonly ConfigModel _settingsConfig = IntegrationManager.SettingsConfig.ConfigModel;
 
     protected override byte[] Download()
     {
@@ -142,7 +142,7 @@ public class Dropbox : BaseIntegration
 
             _settingsConfig.AccessToken = accessToken;
             _settingsConfig.Uid = uid;
-            _settingsConfig.Save();
+            IntegrationManager.SettingsConfig.Save();
             http.Stop();
         }
         catch (Exception e)
