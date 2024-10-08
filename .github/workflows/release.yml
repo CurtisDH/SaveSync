@@ -18,15 +18,8 @@ jobs:
         dotnet-version: 8.0.x
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-
-  release:
-    needs: build  # Ensure the release job only runs after the build succeeds
-    runs-on: windows-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - name: Build and Publish
+      run: dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=true /p:PublishReadyToRun=true --output ./publish
 
     - name: Create GitHub Release
       id: create_release
@@ -39,3 +32,11 @@ jobs:
         body: "Release SaveSync ${{ github.event.inputs.version_tag }}" 
         draft: false
         prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./publish/Soulash2-SaveSync.exe
+        asset_name: Soulash2-SaveSync.exe 
+        asset_content_type: application/octet-stream
