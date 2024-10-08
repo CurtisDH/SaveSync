@@ -1,0 +1,41 @@
+name: SaveSync Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'The tag version for the release'
+        required: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+
+  release:
+    needs: build  # Ensure the release job only runs after the build succeeds
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.event.inputs.version_tag }}
+        release_name: SaveSync ${{ github.event.inputs.version_tag }} 
+        body: "Release SaveSync ${{ github.event.inputs.version_tag }}" 
+        draft: false
+        prerelease: false
