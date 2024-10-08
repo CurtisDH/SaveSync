@@ -26,18 +26,18 @@ allows for the exe path to be changed this can be modified to support any other 
 Example full config with Dropbox Integration selected
 ```json 
 {
-"BackupDirectory": "SaveSyncBackups",
-"SelectedIntegrationName": "Dropbox",
-"ReplaceSaveWithoutAsking": true,
-"SaveLocation": "C:\\Users\\YOURUSERNAME\\AppData\\Roaming\\WizardsOfTheCode\\Soulash2\\saves",
-"LaunchConfig": {
-"ExePath": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Soulash 2\\Soulash 2.exe"
-},
-"DropboxConfigModel": {
-"AccessToken": "REDACTED",
-"Uid": "REDACTED",
-"RefreshToken": "REDACTED"
-}
+  "BackupDirectory": "SaveSyncBackups",
+  "SelectedIntegrationName": "Dropbox",
+  "ReplaceSaveWithoutAsking": true,
+  "SaveLocation": "C:\\Users\\YOURUSERNAME\\AppData\\Roaming\\WizardsOfTheCode\\Soulash2\\saves",
+  "LaunchConfig": {
+  "ExePath": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Soulash 2\\Soulash 2.exe"
+  },
+  "DropboxConfigModel": {
+  "AccessToken": "REDACTED",
+  "Uid": "REDACTED",
+  "RefreshToken": "REDACTED"
+  }
 }
 ```
   
