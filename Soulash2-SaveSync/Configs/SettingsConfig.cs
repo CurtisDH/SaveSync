@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Soulash2_SaveSync.Integrations;
 using Soulash2_SaveSync.Integrations.DropBox;
 
@@ -57,6 +58,11 @@ public class SettingsConfig
 
     public static SettingsConfig? LoadJson()
     {
-        return !File.Exists(ConfigFilePath) ? null : JsonSerializer.Deserialize<SettingsConfig>(File.ReadAllText(ConfigFilePath));
+        // Enable reflection-based serialization
+        var options = new JsonSerializerOptions
+        {
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+        };
+        return !File.Exists(ConfigFilePath) ? null : JsonSerializer.Deserialize<SettingsConfig>(File.ReadAllText(ConfigFilePath),options);
     }
 }
