@@ -7,25 +7,20 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-
-    <PropertyGroup>
-        <PlatformTarget>x86</PlatformTarget>
-    </PropertyGroup>
-
+        
     <ItemGroup>
       <PackageReference Include="Dropbox.Api" Version="7.0.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Update="Integrations\DropBox\index.html">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
     </ItemGroup>
 
     <ItemGroup>
       <Content Include="..\README.md">
         <Link>README.md</Link>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Integrations\DropBox\index.html" />
+      <EmbeddedResource Include="Integrations\DropBox\index.html" />
     </ItemGroup>
 
 </Project>

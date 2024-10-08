@@ -1,6 +1,4 @@
-﻿using Soulash2_SaveSync.Integrations;
-
-namespace Soulash2_SaveSync;
+﻿namespace Soulash2_SaveSync;
 
 internal static class Program
 {

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net;
+using System.Reflection;
 using Dropbox.Api;
 using Dropbox.Api.Files;
 
@@ -40,19 +41,21 @@ public class Dropbox : BaseIntegration
 
         using var memStream = new MemoryStream(zippedContents);
         var task = UploadFileToDropbox("SaveSync.zip", memStream);
-        task.Wait(); 
+        task.Wait();
 
         return !string.IsNullOrEmpty(task.Result);
     }
-    
+
     private async Task<string> UploadFileToDropbox(string fileName, MemoryStream mem)
     {
         try
         {
-            var updated = await new DropboxClient(IntegrationManager.SettingsConfig.DropboxConfigModel.RefreshToken,ApiKey).Files.UploadAsync(
-                $"{DropBoxPath}{fileName}",
-                WriteMode.Overwrite.Instance,
-                body: mem);
+            var updated =
+                await new DropboxClient(IntegrationManager.SettingsConfig.DropboxConfigModel.RefreshToken, ApiKey).Files
+                    .UploadAsync(
+                        $"{DropBoxPath}{fileName}",
+                        WriteMode.Overwrite.Instance,
+                        body: mem);
 
             return updated.Rev;
         }
@@ -78,8 +81,10 @@ public class Dropbox : BaseIntegration
                 {
                     break;
                 }
+
                 IntegrationManager.SettingsConfig.DropboxConfigModel.Reset();
             }
+
             break;
         }
     }
@@ -170,10 +175,17 @@ public class Dropbox : BaseIntegration
         }
 
         context.Response.ContentType = "text/html";
-        
-        using (var file = File.OpenRead("Integrations/DropBox/index.html"))
+        var assembly = Assembly.GetExecutingAssembly();
+        using (var stream = assembly.GetManifestResourceStream("Soulash2_SaveSync.Integrations.DropBox.index.html"))
         {
-            file.CopyTo(context.Response.OutputStream);
+            if (stream != null)
+            {
+                await stream.CopyToAsync(context.Response.OutputStream);
+            }
+            else
+            {
+                throw new FileNotFoundException("Embedded resource not found.");
+            }
         }
 
         context.Response.OutputStream.Close();
@@ -204,5 +216,4 @@ public class Dropbox : BaseIntegration
             Console.WriteLine(message);
         }
     }
-
 }
