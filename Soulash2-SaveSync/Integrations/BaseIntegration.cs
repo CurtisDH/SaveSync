@@ -12,8 +12,20 @@ public abstract class BaseIntegration
 
     public void DownloadAndPromptReplace()
     {
+        Console.WriteLine("Creating backup...");
+        var current = ZipDirectory();
+        var backupPath = Path.Combine(IntegrationManager.SettingsConfig.BackupDirectory,$"Backup-{DateTime.Now.DayOfWeek}.zip");
+        if (!Directory.Exists(IntegrationManager.SettingsConfig.BackupDirectory))
+            Directory.CreateDirectory(IntegrationManager.SettingsConfig.BackupDirectory);
+        File.WriteAllBytes(backupPath,current);
+        Console.WriteLine($"Backup created at {backupPath}. Size: {(float)current.Length/1024} KB");
         Console.WriteLine("Downloading...");
         var downloadedFiles = Download();
+        if (downloadedFiles.Length == 0)
+        {
+            Console.WriteLine("No valid download file found.");
+            return;
+        }
         string downloadFolderPath = Path.Combine(Directory.GetCurrentDirectory(), DownloadFolder);
 
         if (Directory.Exists(downloadFolderPath))

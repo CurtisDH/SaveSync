@@ -6,7 +6,7 @@ namespace Soulash2_SaveSync;
 
 public class IntegrationManager
 {
-    public static readonly SettingsConfig SettingsConfig = new();
+    public static SettingsConfig SettingsConfig = new();
     private readonly List<BaseIntegration?> _integrations;
 
     public IntegrationManager()
@@ -64,8 +64,8 @@ public class IntegrationManager
 
     private void LoadConfiguration()
     {
-        var config = new SettingsConfig();
-        if (config.TryLoadExisting(_integrations) == false)
+        SettingsConfig = SettingsConfig.LoadJson() ?? new SettingsConfig();
+        if (SettingsConfig.TryLoadExisting(_integrations) == false)
         {
             SettingsConfig.SelectedIntegration = SelectIntegration();
         }

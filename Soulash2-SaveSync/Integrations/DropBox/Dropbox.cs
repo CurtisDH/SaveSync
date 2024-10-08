@@ -7,19 +7,28 @@ namespace Soulash2_SaveSync.Integrations.DropBox;
 
 public class Dropbox : BaseIntegration
 {
-    private const string ApiKey = "smmi3ym2bdgwkk2";
+    private const string ApiKey = "mjjbsl9ue09cjmk";
     private const string LoopbackHost = "http://localhost:5000/";
-    private const string fullFilePath = $"/Soulash2-SaveSync/SaveSync.zip";
+    private const string FullFilePath = $"/CurtisDH-SaveSync/SaveSync.zip";
+    private const string DropBoxPath = $"/CurtisDH-SaveSync/";
     private readonly Uri _redirectUri = new Uri(LoopbackHost + "authorize");
     private readonly Uri _jsRedirectUri = new Uri(LoopbackHost + "token");
-    private readonly ConfigModel _settingsConfig = IntegrationManager.SettingsConfig.ConfigModel;
 
     protected override byte[] Download()
     {
-        var client = new DropboxClient(_settingsConfig.RefreshToken, ApiKey);
-        var files = client.Files.DownloadAsync(fullFilePath);
-        var filebytes = files.Result.GetContentAsByteArrayAsync().Result;
-        return filebytes;
+        try
+        {
+            var client = new DropboxClient(IntegrationManager.SettingsConfig.DropboxConfigModel.RefreshToken, ApiKey);
+            var files = client.Files.DownloadAsync(FullFilePath);
+            var filebytes = files.Result.GetContentAsByteArrayAsync().Result;
+            return filebytes;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Download Failed -- save data may not be present. Error message: {e.Message}");
+        }
+
+        return [];
     }
 
     protected override bool Upload(byte[] zippedContents)
@@ -40,8 +49,8 @@ public class Dropbox : BaseIntegration
     {
         try
         {
-            var updated = await new DropboxClient(_settingsConfig.RefreshToken,ApiKey).Files.UploadAsync(
-                $"/Soulash2-SaveSync/{fileName}",
+            var updated = await new DropboxClient(IntegrationManager.SettingsConfig.DropboxConfigModel.RefreshToken,ApiKey).Files.UploadAsync(
+                $"{DropBoxPath}{fileName}",
                 WriteMode.Overwrite.Instance,
                 body: mem);
 
@@ -59,7 +68,7 @@ public class Dropbox : BaseIntegration
         while (true)
         {
             Console.WriteLine("-= Dropbox Configuration Setup =-");
-            if (string.IsNullOrEmpty(_settingsConfig.RefreshToken))
+            if (string.IsNullOrEmpty(IntegrationManager.SettingsConfig.DropboxConfigModel.RefreshToken))
             {
                 await AcquireAccessToken(null, IncludeGrantedScopes.None);
             }
@@ -69,7 +78,7 @@ public class Dropbox : BaseIntegration
                 {
                     break;
                 }
-                _settingsConfig.Reset();
+                IntegrationManager.SettingsConfig.DropboxConfigModel.Reset();
             }
             break;
         }
@@ -79,7 +88,7 @@ public class Dropbox : BaseIntegration
     {
         try
         {
-            var client = new DropboxClient(_settingsConfig.RefreshToken, ApiKey);
+            var client = new DropboxClient(IntegrationManager.SettingsConfig.DropboxConfigModel.RefreshToken, ApiKey);
             var t = client.Users.GetCurrentAccountAsync();
             var result = t.Result;
             return !string.IsNullOrEmpty(result.Name.DisplayName);
@@ -92,8 +101,8 @@ public class Dropbox : BaseIntegration
 
     private async Task AcquireAccessToken(string[] scopeList, IncludeGrantedScopes includeGrantedScopes)
     {
-        var accessToken = _settingsConfig.AccessToken;
-        var refreshToken = _settingsConfig.RefreshToken;
+        var accessToken = IntegrationManager.SettingsConfig.DropboxConfigModel.AccessToken;
+        var refreshToken = IntegrationManager.SettingsConfig.DropboxConfigModel.RefreshToken;
 
         if (!string.IsNullOrEmpty(accessToken)) return;
 
@@ -127,7 +136,7 @@ public class Dropbox : BaseIntegration
             if (tokenResult.RefreshToken != null)
             {
                 Console.WriteLine("RefreshToken: {0}", refreshToken);
-                _settingsConfig.RefreshToken = refreshToken;
+                IntegrationManager.SettingsConfig.DropboxConfigModel.RefreshToken = refreshToken;
             }
 
             if (tokenResult.ExpiresAt != null)
@@ -140,8 +149,8 @@ public class Dropbox : BaseIntegration
                 Console.WriteLine("Scopes: {0}", String.Join(" ", tokenResult.ScopeList));
             }
 
-            _settingsConfig.AccessToken = accessToken;
-            _settingsConfig.Uid = uid;
+            IntegrationManager.SettingsConfig.DropboxConfigModel.AccessToken = accessToken;
+            IntegrationManager.SettingsConfig.DropboxConfigModel.Uid = uid;
             IntegrationManager.SettingsConfig.Save();
             http.Stop();
         }
