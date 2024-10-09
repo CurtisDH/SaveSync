@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using System.Reflection;
 using Dropbox.Api;
 using Dropbox.Api.Files;
@@ -136,28 +135,13 @@ public class Dropbox : BaseIntegration
             accessToken = tokenResult.AccessToken;
             refreshToken = tokenResult.RefreshToken;
             var uid = tokenResult.Uid;
-            Console.WriteLine("Uid: {0}", uid);
-            Console.WriteLine("AccessToken: {0}", accessToken);
-            if (tokenResult.RefreshToken != null)
-            {
-                Console.WriteLine("RefreshToken: {0}", refreshToken);
-                IntegrationManager.SettingsConfig.DropboxConfigModel.RefreshToken = refreshToken;
-            }
-
-            if (tokenResult.ExpiresAt != null)
-            {
-                Console.WriteLine("ExpiresAt: {0}", tokenResult.ExpiresAt);
-            }
-
-            if (tokenResult.ScopeList != null)
-            {
-                Console.WriteLine("Scopes: {0}", String.Join(" ", tokenResult.ScopeList));
-            }
-
+            
             IntegrationManager.SettingsConfig.DropboxConfigModel.AccessToken = accessToken;
+            IntegrationManager.SettingsConfig.DropboxConfigModel.RefreshToken = refreshToken;
             IntegrationManager.SettingsConfig.DropboxConfigModel.Uid = uid;
             IntegrationManager.SettingsConfig.Save();
             http.Stop();
+            Console.WriteLine("Dropbox token successfully saved..");
         }
         catch (Exception e)
         {

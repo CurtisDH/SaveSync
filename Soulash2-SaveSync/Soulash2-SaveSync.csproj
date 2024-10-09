@@ -7,11 +7,16 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-        
+    <PropertyGroup>
+        <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="Dropbox.Api" Version="7.0.0" />
     </ItemGroup>
-
+    <ItemGroup>
+        <TrimmerRootAssembly Include="Soulash2-SaveSync" />
+    </ItemGroup>
     <ItemGroup>
       <Content Include="..\README.md">
         <Link>README.md</Link>

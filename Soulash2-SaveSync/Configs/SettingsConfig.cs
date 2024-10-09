@@ -26,11 +26,28 @@ public class SettingsConfig
 
     public void Save()
     {
+        bool prompt = !File.Exists(ConfigFilePath);
         var s = JsonSerializer.Serialize<SettingsConfig>(this, new JsonSerializerOptions()
         {
             WriteIndented = true
         });
         File.WriteAllText(ConfigFilePath, s);
+        if (prompt)
+        {
+            Console.WriteLine("##############################################################");
+            Console.WriteLine($"Config was not found. A new one has been created at {Path.GetFullPath(ConfigFilePath)}");
+            
+            Console.WriteLine($"\nIf you want to want to customise SaveSync for a game that isn't 'Soulash 2'," +
+                              $" please exit this now and edit the json.\n" +
+                              $"Otherwise ensure this exe is in the same directory as Soulash 2");
+            
+            Console.WriteLine($"\n this will attempt to launch: \n {Path.GetFullPath(LaunchConfig.ExePath)}");
+            
+            Console.WriteLine("##############################################################");
+            
+            Console.WriteLine("Once confirmed press any key to continue...");
+            Console.ReadKey();
+        }
     }
 
     public bool TryLoadExisting(List<BaseIntegration?> integrations)
