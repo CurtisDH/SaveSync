@@ -22,6 +22,8 @@ Here you can modify the following fields to theorhetically work with any game, t
 - **`ExePath`** - **_Default_**: 
 `"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Soulash 2\\Soulash 2.exe"`,
 allows for the exe path to be changed this can be modified to support any other game too. If you still want to launch through steam and enable save sync, rename the original exe, and update this path, then change the `SaveSync.exe` to the orignal game name e.g. rename `Soulash 2.exe` -> `Original Soulash 2.exe` | rename `SaveSync.exe` -> `Soulash 2.exe` | Update the config ExePath to `Original Soulash 2.exe`, then launch through steam as normal
+
+
   ![image](https://github.com/user-attachments/assets/91b45022-896d-4e88-aad3-b12bbc85dadf)
 
 Example full config with Dropbox Integration selected
