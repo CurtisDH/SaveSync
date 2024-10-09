@@ -39,6 +39,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./publish/Soulash2-SaveSync.exe
-        asset_name: Soulash2-SaveSync.exe 
+        asset_path: ./publish/SaveSync.exe
+        asset_name: SaveSync.exe 
         asset_content_type: application/octet-stream
