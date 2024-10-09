@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Soulash2-SaveSync", "Soulash2-SaveSync\Soulash2-SaveSync.csproj", "{37A66012-DF3C-456D-A767-C571F50A1248}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SaveSync", "SaveSync\SaveSync.csproj", "{37A66012-DF3C-456D-A767-C571F50A1248}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

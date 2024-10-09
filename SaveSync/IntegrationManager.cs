@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
-using Soulash2_SaveSync.Configs;
-using Soulash2_SaveSync.Integrations;
+using SaveSync.Configs;
+using SaveSync.Integrations;
 
-namespace Soulash2_SaveSync;
+namespace SaveSync;
 
 public class IntegrationManager
 {

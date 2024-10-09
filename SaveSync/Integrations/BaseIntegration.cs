@@ -1,6 +1,5 @@
 ﻿using System.IO.Compression;
-
-namespace Soulash2_SaveSync.Integrations;
+namespace SaveSync.Integrations;
 
 public abstract class BaseIntegration
 {

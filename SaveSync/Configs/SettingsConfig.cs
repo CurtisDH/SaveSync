@@ -1,10 +1,10 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
-using Soulash2_SaveSync.Integrations;
-using Soulash2_SaveSync.Integrations.DropBox;
+using SaveSync.Integrations;
+using SaveSync.Integrations.DropBox;
 
-namespace Soulash2_SaveSync.Configs;
+namespace SaveSync.Configs;
 
 public class SettingsConfig
 {

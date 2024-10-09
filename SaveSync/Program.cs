@@ -1,5 +1,4 @@
-﻿namespace Soulash2_SaveSync;
-
+﻿namespace SaveSync;
 internal static class Program
 {
     public static void Main(string[] args)
@@ -9,4 +8,3 @@ internal static class Program
         saveSync.Start();
     }
 }
-

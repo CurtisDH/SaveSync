@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
-using System.Text.Json;
-using Soulash2_SaveSync.Integrations;
+using SaveSync.Integrations;
 
-namespace Soulash2_SaveSync;
+namespace SaveSync;
 
 public class SaveSync(BaseIntegration? imSelectedIntegration)
 {
@@ -30,7 +29,6 @@ public class SaveSync(BaseIntegration? imSelectedIntegration)
 public class LaunchConfig()
 {
 #if DEBUG
-    // Adjust this as required
     public string ExePath { get; set; } = @"C:\Program Files (x86)\Steam\steamapps\common\Soulash 2\Soulash 2.exe";
 #else
     public string ExePath { get; set; } = "Soulash 2.exe";

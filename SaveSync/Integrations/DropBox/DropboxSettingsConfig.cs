@@ -1,6 +1,4 @@
-using System.Text.Json;
-
-namespace Soulash2_SaveSync.Integrations.DropBox;
+namespace SaveSync.Integrations.DropBox;
 
 public class ConfigModel
 {

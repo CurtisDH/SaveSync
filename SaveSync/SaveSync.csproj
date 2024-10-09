@@ -3,7 +3,7 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
-        <RootNamespace>Soulash2_SaveSync</RootNamespace>
+        <RootNamespace>SaveSync</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
@@ -15,7 +15,7 @@
       <PackageReference Include="Dropbox.Api" Version="7.0.0" />
     </ItemGroup>
     <ItemGroup>
-        <TrimmerRootAssembly Include="Soulash2-SaveSync" />
+        <TrimmerRootAssembly Include="SaveSync" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="..\README.md">

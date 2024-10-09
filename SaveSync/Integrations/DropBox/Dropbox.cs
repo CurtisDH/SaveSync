@@ -3,7 +3,7 @@ using System.Reflection;
 using Dropbox.Api;
 using Dropbox.Api.Files;
 
-namespace Soulash2_SaveSync.Integrations.DropBox;
+namespace SaveSync.Integrations.DropBox;
 
 public class Dropbox : BaseIntegration
 {
@@ -160,7 +160,7 @@ public class Dropbox : BaseIntegration
 
         context.Response.ContentType = "text/html";
         var assembly = Assembly.GetExecutingAssembly();
-        using (var stream = assembly.GetManifestResourceStream("Soulash2_SaveSync.Integrations.DropBox.index.html"))
+        using (var stream = assembly.GetManifestResourceStream("SaveSync.Integrations.DropBox.index.html"))
         {
             if (stream != null)
             {
