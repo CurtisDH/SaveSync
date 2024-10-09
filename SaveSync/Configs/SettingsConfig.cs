@@ -13,6 +13,8 @@ public class SettingsConfig
     public string SelectedIntegrationName { get; set; } = "";
     public bool ReplaceSaveWithoutAsking { get; init; }
 
+    public int RetryUploadCount { get; set; } = 3;
+
     public string SaveLocation { get; set; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         @"WizardsOfTheCode\Soulash2\saves");

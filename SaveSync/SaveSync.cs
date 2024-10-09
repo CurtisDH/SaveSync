@@ -21,8 +21,19 @@ public class SaveSync(BaseIntegration? imSelectedIntegration)
         var process = Process.Start(startInfo);
         process?.WaitForExit();
         Console.WriteLine($"Uploading save file to {imSelectedIntegration.GetType().Name}");
-        var status = imSelectedIntegration.ZipAndUpload();
-        // todo setup retry 
+        int count = 0;
+        bool status = false;
+        while (status == false)
+        {
+            count++;
+            status = imSelectedIntegration.ZipAndUpload();
+            if (count > IntegrationManager.SettingsConfig.RetryUploadCount)
+            {
+                Console.WriteLine($"Failed to upload attempting retry:{count}, max attempts:{IntegrationManager.SettingsConfig.RetryUploadCount}");
+                break;
+            }
+        }
+        Thread.Sleep(1000);
     }
 }
 
