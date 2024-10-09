@@ -1,12 +1,13 @@
-# Soulash2-SaveSync
+# SaveSync
 
-Built this project to enable cloud saving since I play between devices. Its quite rudimentary currently, but this should be fairly easy to modify in the future to support any game.
+Built this project to enable cloud saving since I play between devices. The default config is targeted at Soulash 2, but editing the Json config once created should allow it to be customised for other applications too.
 
 Current cloud saving integrations are here: https://github.com/CurtisDH/Soulash2-SaveSync/tree/master/Soulash2-SaveSync/Integrations
 at the time of writing I've only done a quick and dirty dropbox implementation
 
 ## How to use
 - Download release, put the contents in the directory of Soulash2.exe, then run the SaveSync.exe, select the integration and follow the steps to set it up, once its done it'll launch the game, once the game closes it'll upload the save file. Every time you run the SaveSync.exe it'll download the contents and prompt you to replace the files (see the config file section if you want to disable the replacement prompt)
+- A backup of the save directory is automatically created before replacement, the backups are created based on the day (`Backup-Wednesday.zip`), so there'll be a maxiumum of 7 backups. It'll override the backup file if its run on that day.
 
 ## Config files
 
